@@ -4,13 +4,10 @@
 // Shapley Value Calculator for Schedule Analysis
 // ═════════════════════════════════════════════════════════════════
 // Players  = tasks.
-// Baseline = the all-planned schedule, v(∅).
-// v(S)     = project completion time when every task in coalition S
-//            runs at its ACTUAL duration and every task outside S
-//            runs at its PLANNED duration (dependencies/order are
-//            always respected via a single forward CPM pass). The value
-//            is only the resulting project end; no coalition values are
-//            adjusted before the Shapley calculation.
+// Performance_i = actualDuration_i - plannedDuration_i.
+// Baseline      = 0 for the empty coalition, v(∅).
+// v(S)          = the most positive task performance deviation in S.
+//                 Dependencies and project completion time are not used.
 // φ_i      = task i's Shapley value = its fairly-weighted average
 //            marginal contribution to v(S) across every coalition,
 //            i.e. how much of the (actual − planned) deviation is
@@ -27,7 +24,7 @@ function popcount(x) {
   return c;
 }
 
-function computeShapleyValuesDebug(taskList, plannedProjectDuration) {
+function computeShapleyValuesDebug(taskList) {
   const n = taskList.length;
   if (n === 0) return null;
   if (taskList.some(t => t.actualDuration === null)) return null;
@@ -41,58 +38,32 @@ function computeShapleyValuesDebug(taskList, plannedProjectDuration) {
     return null;
   }
 
-  const order = topologicalSort(taskList);
-  if (!order) return null; // circular dependency — caller already guards this too
-
-  // Map each task to a bit position so a coalition can be a bitmask.
-  const idToIndex = {};
-  taskList.forEach((t, i) => { idToIndex[t.id] = i; });
-  const predIndices = taskList.map(t =>
-    t.predecessors.map(pid => idToIndex[pid]).filter(idx => idx !== undefined)
-  );
-  const orderIdx = order.map(id => idToIndex[id]);
-
   const numCoalitions = 1 << n; // 2^n, including the empty coalition
+  const deviations = taskList.map(t => t.actualDuration - t.plannedDuration);
 
   // ── Characteristic function v(S) ──────────────────────────────────
-  // One forward CPM pass: task uses actualDuration if its bit is set
-  // in `mask`, otherwise plannedDuration. Returns project duration
-  // (the longest path / max early-finish, same definition computeCPM
-  // and computeActualDuration use).
-  const efScratch = new Array(n);
+  // The empty coalition has no performance deviation. A non-empty
+  // coalition is valued only by its most positive member deviation.
   function valueOf(mask) {
-    for (let k = 0; k < orderIdx.length; k++) {
-      const idx = orderIdx[k];
-      const preds = predIndices[idx];
-      let es = 0;
-      for (let p = 0; p < preds.length; p++) {
-        if (efScratch[preds[p]] > es) es = efScratch[preds[p]];
+    if (mask === 0) return 0;
+
+    let mostPositiveDeviation = -Infinity;
+    for (let i = 0; i < n; i++) {
+      if ((mask & (1 << i)) !== 0 && deviations[i] > mostPositiveDeviation) {
+        mostPositiveDeviation = deviations[i];
       }
-      const usesActual = (mask & (1 << idx)) !== 0;
-      const dur = usesActual ? taskList[idx].actualDuration : taskList[idx].plannedDuration;
-      efScratch[idx] = es + dur;
     }
-    let maxEf = 0;
-    for (let i = 0; i < n; i++) if (efScratch[i] > maxEf) maxEf = efScratch[i];
-    return maxEf;
+    return mostPositiveDeviation;
   }
 
-  // Precompute v(S) for every one of the 2^n coalitions once. Every value
-  // comes directly from the project end produced by the forward CPM pass.
+  // Precompute the performance value for every coalition once.
   const vValues = new Array(numCoalitions);
   for (let mask = 0; mask < numCoalitions; mask++) {
     vValues[mask] = valueOf(mask);
   }
 
-  const baseline = vValues[0]; // v(∅): everyone planned
-  const fullValue = vValues[numCoalitions - 1];  // v(N): everyone actual
-
-  if (round(baseline) !== round(plannedProjectDuration)) {
-    console.warn(
-      `[Shapley] Baseline mismatch: coalition-based v(∅)=${baseline} vs ` +
-      `supplied plannedProjectDuration=${plannedProjectDuration}. Using v(∅).`
-    );
-  }
+  const baseline = vValues[0];
+  const fullValue = vValues[numCoalitions - 1];
 
   // Factorials for the standard Shapley weighting: |S|!(n-|S|-1)!/n!
   const fact = [1];
@@ -156,14 +127,13 @@ function computeShapleyValuesDebug(taskList, plannedProjectDuration) {
 
   perTaskLog.forEach((p, i) => { p.shapleyValue = shapley[i]; });
 
-  const actualDuration = fullValue;
-  const totalDelay = actualDuration - baseline;
+  const totalDeviation = fullValue - baseline;
   const shapleySum = shapley.reduce((a, b) => a + b, 0);
 
   const results = taskList.map((t, i) => {
-    const deviation = t.actualDuration - t.plannedDuration;
+    const deviation = deviations[i];
     const shapleyValue = shapley[i];
-    const responsibilityPct = totalDelay !== 0 ? (shapleyValue / totalDelay) * 100 : 0;
+    const responsibilityPct = totalDeviation !== 0 ? (shapleyValue / totalDeviation) * 100 : 0;
     return {
       id: t.id,
       name: t.name,
@@ -177,10 +147,10 @@ function computeShapleyValuesDebug(taskList, plannedProjectDuration) {
 
   return {
     results,
-    totalDelay,
+    totalDeviation,
     shapleySum,
-    plannedDuration: baseline,
-    actualDuration,
+    baseline,
+    fullCoalitionValue: fullValue,
     debugLog: {
       n,
       numCoalitions,
@@ -199,9 +169,9 @@ function printShapleyDebugLog(debugLog) {
   const { n, numCoalitions, baseline, fullValue, detailKept, coalitions, perTask } = debugLog;
 
   console.group(`Shapley Value Analysis — ${n} tasks, ${numCoalitions} coalitions`);
-  console.log(`Baseline v(∅) [all planned]:        ${baseline}`);
-  console.log(`Full coalition v(N) [all actual]:   ${fullValue}`);
-  console.log(`Total deviation v(N) − v(∅):         ${fullValue - baseline}`);
+  console.log(`Empty coalition v(∅):               ${baseline}`);
+  console.log(`Full coalition v(N) [max deviation]: ${fullValue}`);
+  console.log(`Coalition deviation v(N) − v(∅):     ${fullValue - baseline}`);
 
   if (detailKept && coalitions) {
     console.group("All coalitions S and their value v(S)");

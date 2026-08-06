@@ -34,12 +34,7 @@ toggleRelations.addEventListener("change", () => render());
 
 // ── Run Analysis ───────────────────────────────────────────────────
 analysisBtn.addEventListener("click", () => {
-  const cpm = computeCPM();
-  if (cpm.hasCycle) {
-    analysisStatus.textContent = "Cannot analyse: circular dependency.";
-    return;
-  }
-  renderAnalysis(cpm.projectDuration);
+  renderAnalysis();
 });
 
 // ── Add Task ───────────────────────────────────────────────────────
@@ -387,7 +382,7 @@ function render() {
 
   // Enable/disable analysis button
   const allHaveActuals = tasks.length > 0 && tasks.every(t => t.actualDuration !== null);
-  analysisBtn.disabled = !allHaveActuals || cpm.hasCycle;
+  analysisBtn.disabled = !allHaveActuals;
   if (!allHaveActuals) {
     analysisStatus.textContent = tasks.length === 0
       ? ""
@@ -946,11 +941,11 @@ function renderGantt(cpm) {
 }
 
 // ── Analysis Rendering ─────────────────────────────────────────────
-function renderAnalysis(plannedProjectDuration) {
+function renderAnalysis() {
   const start_time = Date.now();
   analysisResults.innerHTML = "";
 
-  const result = computeShapleyValuesDebug(tasks, plannedProjectDuration);
+  const result = computeShapleyValuesDebug(tasks);
   if (!result) {
     analysisResults.innerHTML = '<div class="empty-msg">Analysis not available.</div>';
     return;
@@ -959,18 +954,18 @@ function renderAnalysis(plannedProjectDuration) {
   // Print step-by-step debug trace to browser console (F12 → Console)
   printShapleyDebugLog(result.debugLog);
 
-  const { results, totalDelay, shapleySum, plannedDuration, actualDuration } = result;
+  const { results, totalDeviation, shapleySum, baseline, fullCoalitionValue } = result;
 
   // Summary header
   const summary = document.createElement("div");
   summary.className = "analysis-summary";
 
-  const delayLabel = totalDelay >= 0 ? "Total Delay" : "Total Acceleration";
-  const delayClass = totalDelay >= 0 ? "delay" : "accel";
+  const deviationClass = totalDeviation >= 0 ? "delay" : "accel";
+  const fullValueSign = fullCoalitionValue >= 0 ? "+" : "";
   summary.innerHTML = `
-    <span>Planned Duration: <strong>${plannedDuration}</strong></span>
-    <span>Actual Duration: <strong>${actualDuration}</strong></span>
-    <span class="${delayClass}">${delayLabel}: <strong>${totalDelay >= 0 ? "+" : ""}${round(totalDelay)}</strong></span>
+    <span>Performance: <strong>Actual − Planned</strong></span>
+    <span>Empty Coalition: <strong>${baseline}</strong></span>
+    <span class="${deviationClass}">Full Coalition (Most Positive): <strong>${fullValueSign}${round(fullCoalitionValue)}</strong></span>
   `;
   analysisResults.appendChild(summary);
 
@@ -986,7 +981,7 @@ function renderAnalysis(plannedProjectDuration) {
       <th>Actual</th>
       <th>Deviation</th>
       <th>Shapley Value</th>
-      <th>Responsibility %</th>
+      <th>Shapley Share %</th>
     </tr>
   `;
   table.appendChild(thead);
@@ -1001,7 +996,7 @@ function renderAnalysis(plannedProjectDuration) {
 
     const svSign = r.shapleyValue >= 0 ? "+" : "";
     const devSign = r.deviation >= 0 ? "+" : "";
-    const pctDisplay = totalDelay !== 0 ? round(r.responsibilityPct) + "%" : "—";
+    const pctDisplay = totalDeviation !== 0 ? round(r.responsibilityPct) + "%" : "—";
 
     tr.innerHTML = `
       <td>${r.name}</td>
