@@ -8,11 +8,9 @@
 // v(S)     = project completion time when every task in coalition S
 //            runs at its ACTUAL duration and every task outside S
 //            runs at its PLANNED duration (dependencies/order are
-//            always respected via a single forward CPM pass) — with
-//            one exception: for a SINGLETON coalition {i} where task i
-//            is accelerated, v({i}) is forced to v(∅) minus i's full
-//            acceleration amount, even if i isn't on the critical path
-//            on its own. See the singleton-override note further down.
+//            always respected via a single forward CPM pass). The value
+//            is only the resulting project end; no coalition values are
+//            adjusted before the Shapley calculation.
 // φ_i      = task i's Shapley value = its fairly-weighted average
 //            marginal contribution to v(S) across every coalition,
 //            i.e. how much of the (actual − planned) deviation is
@@ -79,42 +77,14 @@ function computeShapleyValuesDebug(taskList, plannedProjectDuration) {
     return maxEf;
   }
 
-  // Precompute v(S) for every one of the 2^n coalitions once.
-  //
-  // Special case: for a SINGLETON coalition {i}, if task i is accelerated
-  // (actualDuration < plannedDuration), credit it the full acceleration
-  // amount directly — v({i}) = v(∅) − (planned_i − actual_i) — rather than
-  // letting the forward pass decide whether i happens to be the bottleneck
-  // on its own. Under plain CPM, accelerating a non-critical task changes
-  // nothing (some other path is still longer), so v({i}) would equal
-  // v(∅) and the task would get no credit at all for finishing early.
-  // This override guarantees every accelerated task's singleton value
-  // reflects its own time saved, regardless of criticality. That adjusted
-  // v({i}) is stored in the same vValues array used everywhere else, so
-  // it's automatically reused as the "S" term in every later marginal
-  // contribution v(S∪{j}) − v(S) where S happens to be {i} — i.e. the
-  // adjustment carries forward into other tasks' calculations too, not
-  // just task i's own.
-  //
-  // Delays, and every coalition of size ≠ 1, are unaffected — they still
-  // go through the normal forward pass.
+  // Precompute v(S) for every one of the 2^n coalitions once. Every value
+  // comes directly from the project end produced by the forward CPM pass.
   const vValues = new Array(numCoalitions);
-  vValues[0] = valueOf(0);
-  const baseline = vValues[0]; // v(∅): everyone planned
-
-  for (let mask = 1; mask < numCoalitions; mask++) {
-    if ((mask & (mask - 1)) === 0) { // popcount(mask) === 1 → singleton coalition
-      const idx = Math.log2(mask);
-      const t = taskList[idx];
-      const acceleration = t.plannedDuration - t.actualDuration;
-      if (acceleration > 0) {
-        vValues[mask] = baseline - acceleration;
-        continue;
-      }
-    }
+  for (let mask = 0; mask < numCoalitions; mask++) {
     vValues[mask] = valueOf(mask);
   }
 
+  const baseline = vValues[0]; // v(∅): everyone planned
   const fullValue = vValues[numCoalitions - 1];  // v(N): everyone actual
 
   if (round(baseline) !== round(plannedProjectDuration)) {
