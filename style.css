@@ -350,6 +350,19 @@ button.delete-btn {
   margin-bottom: 4px;
 }
 
+.variation-gantt-title {
+  font-size: 12px;
+  margin: 8px 0 2px;
+}
+
+.variation-gantt-container {
+  margin-top: 2px;
+}
+
+.variation-gantt-legend {
+  margin-bottom: 4px;
+}
+
 .analysis-summary {
   display: flex;
   gap: 16px;

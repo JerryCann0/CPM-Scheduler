@@ -181,12 +181,33 @@ function computePlannedSchedule(taskList) {
   return { nodes: taskList.map(task => nodes[task.id]), projectDuration };
 }
 
-function renderPlannedGantt() {
-  plannedGanttContainer.innerHTML = "";
-  if (!inputData) return;
-  const schedule = computePlannedSchedule(inputData.project.tasks);
-  if (!schedule) {
-    plannedGanttContainer.innerHTML = '<div class="empty-msg">Cannot render: circular dependency.</div>';
+function computeActualSchedule(taskList) {
+  const order = topologicalSort(taskList);
+  if (!order) return null;
+  const nodes = Object.fromEntries(taskList.map(task => [task.id, {
+    ...task,
+    es: 0,
+    ef: 0
+  }]));
+
+  order.forEach(id => {
+    const node = nodes[id];
+    node.es = node.predecessors.length
+      ? Math.max(...node.predecessors.map(predecessorId => nodes[predecessorId]?.ef || 0))
+      : 0;
+    node.ef = node.es + node.actualDuration;
+  });
+
+  return {
+    nodes: taskList.map(task => nodes[task.id]),
+    projectDuration: Math.max(...Object.values(nodes).map(node => node.ef), 0)
+  };
+}
+
+function renderScheduleGantt(container, plannedSchedule, actualSchedule, markerPrefix) {
+  container.innerHTML = "";
+  if (!plannedSchedule) {
+    container.innerHTML = '<div class="empty-msg">Cannot render: circular dependency.</div>';
     return;
   }
 
@@ -195,10 +216,17 @@ function renderPlannedGantt() {
   const HEADER_H = 20;
   const LABEL_W = 110;
   const BAR_MID = 7;
-  const maxTime = Math.max(Math.ceil(schedule.projectDuration), 1);
+  const BAR_MID_ACTUAL = 15.5;
+  const maxTime = Math.max(Math.ceil(
+    Math.max(plannedSchedule.projectDuration, actualSchedule?.projectDuration || 0)
+  ), 1);
   const wrapper = document.createElement("div");
-  wrapper.className = "planned-gantt";
+  wrapper.className = "planned-gantt gantt-chart";
   wrapper.style.position = "relative";
+  wrapper.setAttribute("role", "img");
+  wrapper.setAttribute("aria-label", actualSchedule
+    ? "Gantt chart comparing planned and actual task schedules"
+    : "Gantt chart showing the planned task schedule");
 
   const header = document.createElement("div");
   header.className = "gantt-header";
@@ -218,8 +246,9 @@ function renderPlannedGantt() {
   wrapper.appendChild(header);
 
   const rowIndex = {};
-  schedule.nodes.forEach((node, index) => { rowIndex[node.id] = index; });
-  schedule.nodes.forEach(node => {
+  const actualById = Object.fromEntries((actualSchedule?.nodes || []).map(node => [node.id, node]));
+  plannedSchedule.nodes.forEach((node, index) => { rowIndex[node.id] = index; });
+  plannedSchedule.nodes.forEach(node => {
     const row = document.createElement("div");
     row.className = "gantt-row";
     const label = document.createElement("div");
@@ -241,6 +270,16 @@ function renderPlannedGantt() {
     bar.style.width = `${Math.max(node.plannedDuration * CELL_W - 2, 1)}px`;
     bar.title = `${node.name} (planned): ${node.es}-${node.ef}`;
     bars.appendChild(bar);
+
+    const actualNode = actualById[node.id];
+    if (actualNode) {
+      const actualBar = document.createElement("div");
+      actualBar.className = "gantt-bar actual";
+      actualBar.style.left = `${actualNode.es * CELL_W}px`;
+      actualBar.style.width = `${Math.max(actualNode.actualDuration * CELL_W - 2, 1)}px`;
+      actualBar.title = `${node.name} (actual): ${actualNode.es}-${actualNode.ef}`;
+      bars.appendChild(actualBar);
+    }
     row.appendChild(bars);
     wrapper.appendChild(row);
   });
@@ -248,48 +287,81 @@ function renderPlannedGantt() {
   const svgNamespace = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNamespace, "svg");
   svg.setAttribute("width", LABEL_W + maxTime * CELL_W);
-  svg.setAttribute("height", HEADER_H + schedule.nodes.length * ROW_H);
+  svg.setAttribute("height", HEADER_H + plannedSchedule.nodes.length * ROW_H);
   svg.style.position = "absolute";
   svg.style.top = "0";
   svg.style.left = "0";
   svg.style.pointerEvents = "none";
   const defs = document.createElementNS(svgNamespace, "defs");
-  const marker = document.createElementNS(svgNamespace, "marker");
-  marker.setAttribute("id", "variation-gantt-arrow-planned");
-  marker.setAttribute("viewBox", "0 0 10 10");
-  marker.setAttribute("refX", "10");
-  marker.setAttribute("refY", "5");
-  marker.setAttribute("markerWidth", "6");
-  marker.setAttribute("markerHeight", "6");
-  marker.setAttribute("orient", "auto-start-reverse");
-  const arrowHead = document.createElementNS(svgNamespace, "path");
-  arrowHead.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
-  arrowHead.setAttribute("fill", "#666");
-  marker.appendChild(arrowHead);
-  defs.appendChild(marker);
+  const plannedMarkerId = `${markerPrefix}-planned`;
+  const actualMarkerId = `${markerPrefix}-actual`;
+
+  function appendMarker(id, color) {
+    const marker = document.createElementNS(svgNamespace, "marker");
+    marker.setAttribute("id", id);
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "10");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerWidth", "6");
+    marker.setAttribute("markerHeight", "6");
+    marker.setAttribute("orient", "auto-start-reverse");
+    const arrowHead = document.createElementNS(svgNamespace, "path");
+    arrowHead.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+    arrowHead.setAttribute("fill", color);
+    marker.appendChild(arrowHead);
+    defs.appendChild(marker);
+  }
+
+  appendMarker(plannedMarkerId, "#666");
+  if (actualSchedule) appendMarker(actualMarkerId, "#3a6b99");
   svg.appendChild(defs);
 
-  schedule.nodes.forEach(node => {
+  function drawArrow(x1, y1, x2, y2, color, markerId) {
+    const middleX = x1 === x2 ? x1 + 4 : (x1 + x2) / 2;
+    const path = document.createElementNS(svgNamespace, "path");
+    path.setAttribute("d", `M ${x1} ${y1} L ${middleX} ${y1} L ${middleX} ${y2} L ${x2} ${y2}`);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", color);
+    path.setAttribute("stroke-width", "1");
+    path.setAttribute("marker-end", `url(#${markerId})`);
+    svg.appendChild(path);
+  }
+
+  plannedSchedule.nodes.forEach(node => {
     node.predecessors.forEach(predecessorId => {
-      const predecessor = schedule.nodes.find(item => item.id === predecessorId);
+      const predecessor = plannedSchedule.nodes.find(item => item.id === predecessorId);
       if (!predecessor) return;
       const x1 = LABEL_W + predecessor.ef * CELL_W;
       const x2 = LABEL_W + node.es * CELL_W;
       const y1 = HEADER_H + rowIndex[predecessorId] * ROW_H + BAR_MID;
       const y2 = HEADER_H + rowIndex[node.id] * ROW_H + BAR_MID;
-      const middleX = x1 === x2 ? x1 + 4 : (x1 + x2) / 2;
-      const path = document.createElementNS(svgNamespace, "path");
-      path.setAttribute("d", `M ${x1} ${y1} L ${middleX} ${y1} L ${middleX} ${y2} L ${x2} ${y2}`);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "#666");
-      path.setAttribute("stroke-width", "1");
-      path.setAttribute("marker-end", "url(#variation-gantt-arrow-planned)");
-      svg.appendChild(path);
+      drawArrow(x1, y1, x2, y2, "#666", plannedMarkerId);
     });
   });
 
+  if (actualSchedule) {
+    actualSchedule.nodes.forEach(node => {
+      node.predecessors.forEach(predecessorId => {
+        const predecessor = actualById[predecessorId];
+        if (!predecessor) return;
+        const x1 = LABEL_W + predecessor.ef * CELL_W;
+        const x2 = LABEL_W + node.es * CELL_W;
+        const y1 = HEADER_H + rowIndex[predecessorId] * ROW_H + BAR_MID_ACTUAL;
+        const y2 = HEADER_H + rowIndex[node.id] * ROW_H + BAR_MID_ACTUAL;
+        drawArrow(x1, y1, x2, y2, "#3a6b99", actualMarkerId);
+      });
+    });
+  }
+
   wrapper.appendChild(svg);
-  plannedGanttContainer.appendChild(wrapper);
+  container.appendChild(wrapper);
+}
+
+function renderPlannedGantt() {
+  plannedGanttContainer.innerHTML = "";
+  if (!inputData) return;
+  const schedule = computePlannedSchedule(inputData.project.tasks);
+  renderScheduleGantt(plannedGanttContainer, schedule, null, "variation-gantt-baseline");
 }
 
 function renderVariationSettings() {
@@ -353,7 +425,14 @@ function renderVariation(index) {
 
   return `<section class="variation-card"><h3>Variation ${index + 1}</h3>
     <div class="analysis-summary"><span>Project-end change: <strong>${signed(methods.projectEnd.totalDelay)}</strong></span><span>Most positive deviation: <strong>${signed(methods.deviation.totalDelay)}</strong></span></div>
-    <table class="analysis-table"><thead><tr><th>Task</th><th>Outcome</th><th>Planned Duration</th><th>Deviation</th><th>Actual Duration</th><th>Project-End Shapley</th><th>Deviation Shapley</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+    <table class="analysis-table"><thead><tr><th>Task</th><th>Outcome</th><th>Planned Duration</th><th>Deviation</th><th>Actual Duration</th><th>Project-End Shapley</th><th>Deviation Shapley</th></tr></thead><tbody>${rows}</tbody></table>
+    <h4 class="variation-gantt-title">Planned vs. Actual Schedule</h4>
+    <div class="gantt-container variation-gantt-container" data-variation-index="${index}"></div>
+    <div class="gantt-legend variation-gantt-legend">
+      <span class="legend-item"><span class="legend-swatch legend-planned"></span> Planned</span>
+      <span class="legend-item"><span class="legend-swatch legend-actual"></span> Actual</span>
+      <span class="legend-item"><span class="legend-swatch legend-critical"></span> Planned critical</span>
+    </div></section>`;
 }
 
 function renderVariations() {
@@ -362,6 +441,23 @@ function renderVariations() {
   let html = "";
   for (let index = 0; index < total; index++) html += renderVariation(index);
   variationResults.innerHTML = html;
+
+  const plannedSchedule = computePlannedSchedule(inputData.project.tasks);
+  variationResults.querySelectorAll(".variation-gantt-container").forEach(container => {
+    const index = Number(container.dataset.variationIndex);
+    const variation = getVariation(index);
+    const outcomes = Object.fromEntries(variation.outcomes.map(item => [item.taskId, item]));
+    const tasks = inputData.project.tasks.map(task => ({
+      ...task,
+      actualDuration: outcomes[task.id].actualDuration
+    }));
+    renderScheduleGantt(
+      container,
+      plannedSchedule,
+      computeActualSchedule(tasks),
+      `variation-gantt-${index}`
+    );
+  });
 }
 
 function buildVariationExport() {
