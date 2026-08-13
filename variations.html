@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPM Shapley Variation Analysis</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Shapley Values for Schedule Variations</h1>
+  <p class="analysis-description">
+    View both calculation methods for every early, on-time, and delayed task combination.
+    Open this page from the scheduler for prefilled data, or import a variation JSON export.
+  </p>
+  <div class="actions">
+    <a href="index.html"><button type="button">Back to Scheduler</button></a>
+    <button id="variation-import-btn" type="button">Import Variation JSON</button>
+    <input id="variation-import-file" type="file" accept=".json,application/json" hidden>
+  </div>
+  <div id="viewer-status" class="analysis-status">No variation data loaded.</div>
+  <div id="viewer-controls" class="variation-viewer-toolbar" hidden>
+    <label>Variation <input id="variation-number" type="number" min="1" value="1"></label>
+    <label>Per page
+      <select id="page-size">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+      </select>
+    </label>
+    <button id="previous-page" type="button">Previous</button>
+    <button id="next-page" type="button">Next</button>
+    <span id="page-label"></span>
+  </div>
+  <div id="variation-results"></div>
+  <script src="analysis.js"></script>
+  <script src="variations.js"></script>
+</body>
+</html>

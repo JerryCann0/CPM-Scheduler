@@ -318,6 +318,42 @@ button.delete-btn {
   font-style: italic;
 }
 
+.analysis-method-title {
+  font-size: 12px;
+  margin: 10px 0 2px;
+}
+
+.variation-settings {
+  max-width: 620px;
+}
+
+.variation-settings input[type="number"] {
+  width: 80px;
+}
+
+.variation-viewer-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.variation-card {
+  border: 1px solid #aaa;
+  margin: 8px 0;
+  padding: 6px;
+}
+
+.variation-card h3 {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.variation-card .analysis-table {
+  margin-bottom: 4px;
+}
+
 .analysis-summary {
   display: flex;
   gap: 16px;

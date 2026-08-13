@@ -72,14 +72,26 @@
   <h2>Delay / Acceleration Analysis</h2>
   <p class="analysis-description">
     Apportions responsibility for project delay or acceleration using
-    <strong>Shapley values</strong> — every possible coalition of deviations is
-    evaluated to determine each task's fair share.
+    <strong>Shapley values</strong> with two methods: recomputed project end dates,
+    and the most positive task deviation in each coalition.
   </p>
   <div class="actions" style="margin: 6px 0;">
     <button id="analysis-btn" disabled>Run Analysis</button>
     <span id="analysis-status" class="analysis-status"></span>
   </div>
   <div id="analysis-results"></div>
+  <h2>Variation Analysis</h2>
+  <p class="analysis-description">
+    Enter how early and how late each task may be. The export contains every
+    early, on-time, and delayed combination (3<sup>tasks</sup>) for the separate
+    variation analysis page.
+  </p>
+  <div id="variation-settings" class="variation-settings"></div>
+  <div class="actions">
+    <button id="variation-export-btn" disabled>Export All Variations</button>
+    <button id="variation-open-btn" disabled>Open Variation Analysis</button>
+    <span id="variation-status" class="analysis-status"></span>
+  </div>
 
   <!-- Actions -->
   <div class="actions">

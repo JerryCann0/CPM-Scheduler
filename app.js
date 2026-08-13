@@ -5,6 +5,7 @@ let tasks = [];
 let nextId = 1;
 let editingTaskId = null;
 let ganttOrder = [];
+let variationOffsets = {};
 
 // ── DOM refs ───────────────────────────────────────────────────────
 const taskNameInput = document.getElementById("task-name");
@@ -26,6 +27,65 @@ const toggleRelations = document.getElementById("toggle-relations");
 const analysisBtn = document.getElementById("analysis-btn");
 const analysisStatus = document.getElementById("analysis-status");
 const analysisResults = document.getElementById("analysis-results");
+const variationSettings = document.getElementById("variation-settings");
+const variationExportBtn = document.getElementById("variation-export-btn");
+const variationOpenBtn = document.getElementById("variation-open-btn");
+const variationStatus = document.getElementById("variation-status");
+const MAX_VARIATION_TASKS = 10;
+const SCHEDULER_STORAGE_KEY = "cpmSchedulerState";
+
+function persistSchedulerState() {
+  const state = {
+    version: 1,
+    tasks,
+    nextId,
+    ganttOrder,
+    variationOffsets,
+    display: {
+      planned: togglePlanned.checked,
+      actual: toggleActual.checked,
+      relations: toggleRelations.checked
+    }
+  };
+  try {
+    localStorage.setItem(SCHEDULER_STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn("Could not save the scheduler state.", error);
+  }
+}
+
+function restoreSchedulerState() {
+  let saved;
+  try {
+    saved = JSON.parse(localStorage.getItem(SCHEDULER_STORAGE_KEY));
+  } catch {
+    return;
+  }
+  if (!saved || !Array.isArray(saved.tasks)) return;
+
+  tasks = saved.tasks.map(task => ({
+    id: task.id,
+    name: task.name,
+    plannedDuration: task.plannedDuration,
+    actualDuration: Number.isFinite(task.actualDuration) ? task.actualDuration : null,
+    predecessors: Array.isArray(task.predecessors) ? task.predecessors.slice() : []
+  }));
+  const taskIds = new Set(tasks.map(task => task.id));
+  const savedOrder = Array.isArray(saved.ganttOrder)
+    ? saved.ganttOrder.filter(id => taskIds.has(id))
+    : [];
+  ganttOrder = savedOrder.concat(tasks.map(task => task.id).filter(id => !savedOrder.includes(id)));
+  nextId = Math.max(Number(saved.nextId) || 1, ...tasks.map(task => task.id + 1), 1);
+  variationOffsets = saved.variationOffsets && typeof saved.variationOffsets === "object"
+    ? saved.variationOffsets
+    : {};
+
+  if (saved.display) {
+    togglePlanned.checked = saved.display.planned !== false;
+    toggleActual.checked = saved.display.actual !== false;
+    toggleRelations.checked = saved.display.relations !== false;
+  }
+}
 
 // ── Toggle Event Listeners ─────────────────────────────────────────
 togglePlanned.addEventListener("change", () => render());
@@ -396,9 +456,131 @@ function render() {
     analysisStatus.textContent = "";
   }
 
+  renderVariationSettings(cpm.hasCycle);
+
   // Render Gantt chart
   renderGantt(cpm);
+  persistSchedulerState();
 }
+
+function escapeHtml(value) {
+  const element = document.createElement("span");
+  element.textContent = String(value);
+  return element.innerHTML;
+}
+
+function renderVariationSettings(hasCycle) {
+  if (!tasks.length) {
+    variationSettings.innerHTML = '<div class="empty-msg">Add tasks to configure variations.</div>';
+    variationExportBtn.disabled = true;
+    variationOpenBtn.disabled = true;
+    variationStatus.textContent = "";
+    return;
+  }
+
+  tasks.forEach(task => {
+    if (!variationOffsets[task.id]) variationOffsets[task.id] = { early: Math.min(1, task.plannedDuration), late: 1 };
+    variationOffsets[task.id].early = Math.min(variationOffsets[task.id].early, task.plannedDuration);
+  });
+  const rows = tasks.map(task => {
+    const offsets = variationOffsets[task.id];
+    return `<tr><td>${escapeHtml(task.name)}</td><td>${task.plannedDuration}</td>
+      <td><input class="variation-offset" data-task-id="${task.id}" data-kind="early" type="number" min="0" max="${task.plannedDuration}" step="1" value="${offsets.early}"></td>
+      <td><input class="variation-offset" data-task-id="${task.id}" data-kind="late" type="number" min="0" step="1" value="${offsets.late}"></td></tr>`;
+  }).join("");
+  variationSettings.innerHTML = `<table class="analysis-table"><thead><tr><th>Task</th><th>Planned</th><th>Early by</th><th>Late by</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+  const tooMany = tasks.length > MAX_VARIATION_TASKS;
+  variationExportBtn.disabled = hasCycle || tooMany;
+  variationOpenBtn.disabled = hasCycle || tooMany;
+  variationStatus.textContent = hasCycle
+    ? "Resolve the circular dependency first."
+    : tooMany
+      ? `All-variation analysis supports up to ${MAX_VARIATION_TASKS} tasks.`
+      : `${3 ** tasks.length} variations will be generated.`;
+}
+
+variationSettings.addEventListener("change", event => {
+  const input = event.target.closest(".variation-offset");
+  if (!input) return;
+  const taskId = Number(input.dataset.taskId);
+  const task = tasks.find(item => item.id === taskId);
+  if (!task) return;
+  let value = Number(input.value);
+  if (!Number.isFinite(value) || value < 0) value = 0;
+  if (input.dataset.kind === "early") value = Math.min(value, task.plannedDuration);
+  variationOffsets[taskId][input.dataset.kind] = value;
+  input.value = value;
+  persistSchedulerState();
+});
+
+function buildVariationInput(includeVariations) {
+  const sourceTasks = tasks.map(task => ({
+    id: task.id,
+    name: task.name,
+    plannedDuration: task.plannedDuration,
+    predecessors: task.predecessors.slice()
+  }));
+  const settings = sourceTasks.map(task => ({
+    taskId: task.id,
+    earlyBy: variationOffsets[task.id].early,
+    lateBy: variationOffsets[task.id].late
+  }));
+  const output = {
+    format: "cpm-shapley-variations",
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    project: { plannedDuration: computeCPM().projectDuration, tasks: sourceTasks },
+    settings
+  };
+  if (includeVariations) output.variations = generateVariations(sourceTasks, settings);
+  return output;
+}
+
+function generateVariations(sourceTasks, settings) {
+  const settingsById = Object.fromEntries(settings.map(item => [item.taskId, item]));
+  const total = 3 ** sourceTasks.length;
+  const variations = new Array(total);
+  for (let index = 0; index < total; index++) {
+    let encoded = index;
+    const outcomes = sourceTasks.map(task => {
+      const stateIndex = encoded % 3;
+      encoded = Math.floor(encoded / 3);
+      const setting = settingsById[task.id];
+      const states = [
+        { status: "early", deviation: -setting.earlyBy },
+        { status: "onTime", deviation: 0 },
+        { status: "delayed", deviation: setting.lateBy }
+      ];
+      const state = states[stateIndex];
+      return {
+        taskId: task.id,
+        status: state.status,
+        deviation: state.deviation,
+        actualDuration: task.plannedDuration + state.deviation
+      };
+    });
+    variations[index] = { id: index + 1, outcomes };
+  }
+  return variations;
+}
+
+variationExportBtn.addEventListener("click", () => {
+  const output = buildVariationInput(true);
+  const blob = new Blob([JSON.stringify(output, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "cpm_shapley_variations.json";
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+variationOpenBtn.addEventListener("click", () => {
+  persistSchedulerState();
+  localStorage.setItem("cpmVariationAnalysisInput", JSON.stringify(buildVariationInput(false)));
+  window.location.href = "variations.html";
+});
 
 // ── Edit Task Functions ────────────────────────────────────────────
 function startEdit(id) {
@@ -611,6 +793,7 @@ importFile.addEventListener("change", () => {
     // we remap them by name so IDs are stable even if the file was hand-edited.
     tasks = [];
     ganttOrder = [];
+    variationOffsets = {};
     nextId = 1;
 
     // First pass: create tasks without predecessors
@@ -950,16 +1133,25 @@ function renderAnalysis(plannedProjectDuration) {
   const start_time = Date.now();
   analysisResults.innerHTML = "";
 
-  const result = computeShapleyValuesDebug(tasks, plannedProjectDuration);
-  if (!result) {
+  const methods = computeShapleyMethods(tasks, plannedProjectDuration);
+  if (!methods) {
     analysisResults.innerHTML = '<div class="empty-msg">Analysis not available.</div>';
     return;
   }
 
-  // Print step-by-step debug trace to browser console (F12 → Console)
-  printShapleyDebugLog(result.debugLog);
+  printShapleyDebugLog(methods.projectEnd.debugLog);
+  printShapleyDebugLog(methods.deviation.debugLog);
 
-  const { results, totalDelay, shapleySum, plannedDuration, actualDuration } = result;
+  function appendMethod(result, title, description) {
+  const { results, totalDelay, shapleySum } = result;
+  const heading = document.createElement("h3");
+  heading.className = "analysis-method-title";
+  heading.textContent = title;
+  analysisResults.appendChild(heading);
+  const explanation = document.createElement("p");
+  explanation.className = "analysis-description";
+  explanation.textContent = description;
+  analysisResults.appendChild(explanation);
 
   // Summary header
   const summary = document.createElement("div");
@@ -967,11 +1159,9 @@ function renderAnalysis(plannedProjectDuration) {
 
   const delayLabel = totalDelay >= 0 ? "Total Delay" : "Total Acceleration";
   const delayClass = totalDelay >= 0 ? "delay" : "accel";
-  summary.innerHTML = `
-    <span>Planned Duration: <strong>${plannedDuration}</strong></span>
-    <span>Actual Duration: <strong>${actualDuration}</strong></span>
-    <span class="${delayClass}">${delayLabel}: <strong>${totalDelay >= 0 ? "+" : ""}${round(totalDelay)}</strong></span>
-  `;
+  summary.innerHTML = result.method === "deviation"
+    ? `<span>Null Coalition: <strong>0</strong></span><span>Grand Coalition (most positive deviation): <strong>${totalDelay >= 0 ? "+" : ""}${round(totalDelay)}</strong></span>`
+    : `<span>Planned Project End: <strong>${result.plannedDuration}</strong></span><span>Actual Project End: <strong>${result.actualDuration}</strong></span><span class="${delayClass}">${delayLabel}: <strong>${totalDelay >= 0 ? "+" : ""}${round(totalDelay)}</strong></span>`;
   analysisResults.appendChild(summary);
 
   // Results table
@@ -1029,6 +1219,18 @@ function renderAnalysis(plannedProjectDuration) {
 
   table.appendChild(tbody);
   analysisResults.appendChild(table);
+  }
+
+  appendMethod(
+    methods.projectEnd,
+    "Method 1 — Project End Date",
+    "The null coalition uses all planned durations. Each coalition recomputes the project end with actual durations only for its included tasks."
+  );
+  appendMethod(
+    methods.deviation,
+    "Method 2 — Deviation from Planned",
+    "Each task is actual minus planned; a non-empty coalition is valued at its most positive task deviation."
+  );
   console.log("Analysis completed in", Date.now() - start_time, "ms");
 }
 
@@ -1038,4 +1240,5 @@ function round(value) {
 }
 
 // ── Initial render ─────────────────────────────────────────────────
+restoreSchedulerState();
 render();

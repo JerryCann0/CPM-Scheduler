@@ -8,11 +8,7 @@
 // v(S)     = project completion time when every task in coalition S
 //            runs at its ACTUAL duration and every task outside S
 //            runs at its PLANNED duration (dependencies/order are
-//            always respected via a single forward CPM pass) — with
-//            one exception: for a SINGLETON coalition {i} where task i
-//            is accelerated, v({i}) is forced to v(∅) minus i's full
-//            acceleration amount, even if i isn't on the critical path
-//            on its own. See the singleton-override note further down.
+//            always respected via a single forward CPM pass).
 // φ_i      = task i's Shapley value = its fairly-weighted average
 //            marginal contribution to v(S) across every coalition,
 //            i.e. how much of the (actual − planned) deviation is
@@ -80,40 +76,12 @@ function computeShapleyValuesDebug(taskList, plannedProjectDuration) {
   }
 
   // Precompute v(S) for every one of the 2^n coalitions once.
-  //
-  // Special case: for a SINGLETON coalition {i}, if task i is accelerated
-  // (actualDuration < plannedDuration), credit it the full acceleration
-  // amount directly — v({i}) = v(∅) − (planned_i − actual_i) — rather than
-  // letting the forward pass decide whether i happens to be the bottleneck
-  // on its own. Under plain CPM, accelerating a non-critical task changes
-  // nothing (some other path is still longer), so v({i}) would equal
-  // v(∅) and the task would get no credit at all for finishing early.
-  // This override guarantees every accelerated task's singleton value
-  // reflects its own time saved, regardless of criticality. That adjusted
-  // v({i}) is stored in the same vValues array used everywhere else, so
-  // it's automatically reused as the "S" term in every later marginal
-  // contribution v(S∪{j}) − v(S) where S happens to be {i} — i.e. the
-  // adjustment carries forward into other tasks' calculations too, not
-  // just task i's own.
-  //
-  // Delays, and every coalition of size ≠ 1, are unaffected — they still
-  // go through the normal forward pass.
   const vValues = new Array(numCoalitions);
   vValues[0] = valueOf(0);
   const baseline = vValues[0]; // v(∅): everyone planned
 
-  for (let mask = 1; mask < numCoalitions; mask++) {
-    if ((mask & (mask - 1)) === 0) { // popcount(mask) === 1 → singleton coalition
-      const idx = Math.log2(mask);
-      const t = taskList[idx];
-      const acceleration = t.plannedDuration - t.actualDuration;
-      if (acceleration > 0) {
-        vValues[mask] = baseline - acceleration;
-        continue;
-      }
-    }
-    vValues[mask] = valueOf(mask);
-  }
+  // Pure project-end method: no task-specific override is applied.
+  for (let mask = 1; mask < numCoalitions; mask++) vValues[mask] = valueOf(mask);
 
   const fullValue = vValues[numCoalitions - 1];  // v(N): everyone actual
 
@@ -223,15 +191,120 @@ function computeShapleyValuesDebug(taskList, plannedProjectDuration) {
   };
 }
 
+// Deviation-only characteristic function:
+// v(∅) = 0; v(S) is the most positive (maximum) actual-minus-planned
+// deviation among the tasks in S. Dependencies do not affect this method.
+function computeDeviationShapleyValues(taskList) {
+  const n = taskList.length;
+  if (n === 0 || taskList.some(t => t.actualDuration === null)) return null;
+  if (n > SHAPLEY_MAX_EXACT_TASKS) return null;
+
+  const numCoalitions = 2 ** n;
+  const deviations = taskList.map(t => t.actualDuration - t.plannedDuration);
+  const vValues = new Array(numCoalitions).fill(0);
+  for (let mask = 1; mask < numCoalitions; mask++) {
+    let mostPositive = -Infinity;
+    for (let i = 0; i < n; i++) {
+      if (mask & (1 << i)) mostPositive = Math.max(mostPositive, deviations[i]);
+    }
+    vValues[mask] = mostPositive;
+  }
+
+  const fact = [1];
+  for (let i = 1; i <= n; i++) fact[i] = fact[i - 1] * i;
+  const shapley = new Array(n).fill(0);
+  const keepDetail = n <= SHAPLEY_DEBUG_DETAIL_LIMIT;
+  const perTaskLog = taskList.map(t => ({
+    taskId: t.id,
+    taskName: t.name,
+    marginalContributions: keepDetail ? [] : null
+  }));
+
+  for (let mask = 1; mask < numCoalitions; mask++) {
+    for (let i = 0; i < n; i++) {
+      const bit = 1 << i;
+      if (!(mask & bit)) continue;
+      const sMask = mask & ~bit;
+      const sSize = popcount(sMask);
+      const weight = (fact[sSize] * fact[n - sSize - 1]) / fact[n];
+      const marginal = vValues[mask] - vValues[sMask];
+      const weightedContribution = weight * marginal;
+      shapley[i] += weightedContribution;
+      if (keepDetail) {
+        const members = [];
+        for (let k = 0; k < n; k++) if (sMask & (1 << k)) members.push(taskList[k].name);
+        perTaskLog[i].marginalContributions.push({
+          coalitionBefore: members,
+          valueWithout: vValues[sMask],
+          valueWith: vValues[mask],
+          marginal,
+          weight,
+          weightedContribution
+        });
+      }
+    }
+  }
+
+  const fullValue = vValues[numCoalitions - 1];
+  const shapleySum = shapley.reduce((sum, value) => sum + value, 0);
+  perTaskLog.forEach((task, i) => { task.shapleyValue = shapley[i]; });
+  const coalitionLog = keepDetail ? vValues.map((value, mask) => {
+    const members = [];
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) members.push(taskList[i].name);
+    return { mask, members, value, deltaFromBaseline: value };
+  }) : null;
+
+  return {
+    method: "deviation",
+    results: taskList.map((t, i) => ({
+      id: t.id,
+      name: t.name,
+      planned: t.plannedDuration,
+      actual: t.actualDuration,
+      deviation: deviations[i],
+      shapleyValue: shapley[i],
+      responsibilityPct: fullValue !== 0 ? (shapley[i] / fullValue) * 100 : 0
+    })),
+    baseline: 0,
+    fullValue,
+    totalValue: fullValue,
+    totalDelay: fullValue,
+    shapleySum,
+    debugLog: {
+      method: "deviation",
+      n,
+      numCoalitions,
+      baseline: 0,
+      fullValue,
+      detailKept: keepDetail,
+      coalitions: coalitionLog,
+      perTask: perTaskLog
+    }
+  };
+}
+
+function computeShapleyMethods(taskList, plannedProjectDuration) {
+  const projectEnd = computeShapleyValuesDebug(taskList, plannedProjectDuration);
+  const deviation = computeDeviationShapleyValues(taskList);
+  if (!projectEnd || !deviation) return null;
+  projectEnd.method = "projectEnd";
+  projectEnd.baseline = projectEnd.plannedDuration;
+  projectEnd.fullValue = projectEnd.actualDuration;
+  projectEnd.totalValue = projectEnd.totalDelay;
+  projectEnd.debugLog.method = "projectEnd";
+  return { projectEnd, deviation };
+}
+
 // ── Shapley Debug Log Printer 
 function printShapleyDebugLog(debugLog) {
   if (!debugLog) return;
   const { n, numCoalitions, baseline, fullValue, detailKept, coalitions, perTask } = debugLog;
 
-  console.group(`Shapley Value Analysis — ${n} tasks, ${numCoalitions} coalitions`);
-  console.log(`Baseline v(∅) [all planned]:        ${baseline}`);
-  console.log(`Full coalition v(N) [all actual]:   ${fullValue}`);
-  console.log(`Total deviation v(N) − v(∅):         ${fullValue - baseline}`);
+  const methodLabel = debugLog.method === "deviation" ? "Deviation" : "Project End";
+  console.group(`${methodLabel} Shapley Value Analysis — ${n} tasks, ${numCoalitions} coalitions`);
+  console.log(`Null coalition v(∅):                 ${baseline}`);
+  console.log(`Grand coalition v(N):                ${fullValue}`);
+  console.log(`Total value v(N) − v(∅):             ${fullValue - baseline}`);
 
   if (detailKept && coalitions) {
     console.group("All coalitions S and their value v(S)");
