@@ -9,28 +9,31 @@
 <body>
   <h1>Shapley Values for Schedule Variations</h1>
   <p class="analysis-description">
-    View both calculation methods for every early, on-time, and delayed task combination.
+    View both calculation methods for every distinct early, on-time, and delayed task combination.
     Open this page from the scheduler for prefilled data, or import a variation JSON export.
   </p>
   <div class="actions">
     <a href="index.html"><button type="button">Back to Scheduler</button></a>
     <button id="variation-import-btn" type="button">Import Variation JSON</button>
+    <button id="variation-export-btn" type="button" disabled>Export Variations</button>
     <input id="variation-import-file" type="file" accept=".json,application/json" hidden>
   </div>
   <div id="viewer-status" class="analysis-status">No variation data loaded.</div>
-  <div id="viewer-controls" class="variation-viewer-toolbar" hidden>
-    <label>Variation <input id="variation-number" type="number" min="1" value="1"></label>
-    <label>Per page
-      <select id="page-size">
-        <option value="5">5</option>
-        <option value="10" selected>10</option>
-        <option value="25">25</option>
-      </select>
-    </label>
-    <button id="previous-page" type="button">Previous</button>
-    <button id="next-page" type="button">Next</button>
-    <span id="page-label"></span>
-  </div>
+  <section id="planned-schedule-section" hidden>
+    <h2>Planned Schedule</h2>
+    <div id="planned-gantt-container" class="gantt-container"></div>
+    <div class="gantt-legend">
+      <span class="legend-item"><span class="legend-swatch legend-planned"></span> Planned</span>
+      <span class="legend-item"><span class="legend-swatch legend-critical"></span> Critical</span>
+    </div>
+  </section>
+  <section id="variation-settings-section" hidden>
+    <h2>Variation Settings</h2>
+    <p class="analysis-description">
+      Change how early or late each task may be. Results update immediately and the settings sync with the scheduler.
+    </p>
+    <div id="viewer-variation-settings" class="variation-settings"></div>
+  </section>
   <div id="variation-results"></div>
   <script src="analysis.js"></script>
   <script src="variations.js"></script>

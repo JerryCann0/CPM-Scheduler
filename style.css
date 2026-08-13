@@ -331,12 +331,8 @@ button.delete-btn {
   width: 80px;
 }
 
-.variation-viewer-toolbar {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin: 8px 0;
+.planned-gantt .gantt-row {
+  cursor: default;
 }
 
 .variation-card {
@@ -515,7 +511,8 @@ tr.dragging {
   width: auto;
   cursor: pointer;
 }
-.edit-preds-container {
+.edit-preds-container,
+.inline-preds-container {
   max-height: 70px;
   overflow-y: auto;
   border: 1px solid #ccc;
@@ -526,7 +523,8 @@ tr.dragging {
   gap: 2px;
   min-width: 130px;
 }
-.edit-preds-container label {
+.edit-preds-container label,
+.inline-preds-container label {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -536,10 +534,17 @@ tr.dragging {
   margin: 0;
   white-space: nowrap;
 }
-.edit-preds-container label input {
+.edit-preds-container label input,
+.inline-preds-container label input {
   margin: 0;
   width: auto;
   cursor: pointer;
+}
+
+.inline-preds-empty {
+  color: #888;
+  font-size: 11px;
+  font-style: italic;
 }
 
 

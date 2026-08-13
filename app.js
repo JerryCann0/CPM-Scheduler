@@ -79,6 +79,7 @@ function restoreSchedulerState() {
   variationOffsets = saved.variationOffsets && typeof saved.variationOffsets === "object"
     ? saved.variationOffsets
     : {};
+  syncVariationOffsetsFromAnalysis();
 
   if (saved.display) {
     togglePlanned.checked = saved.display.planned !== false;
@@ -151,6 +152,73 @@ function setActual(id, value) {
   if (!task) return;
   const v = parseInt(value, 10);
   task.actualDuration = (isNaN(v) || v < 0) ? null : v;
+  render();
+}
+
+function syncVariationOffsetsFromAnalysis(value) {
+  let analysisInput = value;
+  if (!analysisInput) {
+    try {
+      analysisInput = JSON.parse(localStorage.getItem(VARIATION_ANALYSIS_STORAGE_KEY));
+    } catch {
+      return false;
+    }
+  }
+  if (!analysisInput?.project ||
+      !variationTaskListsMatch(tasks, analysisInput.project.tasks) ||
+      !Array.isArray(analysisInput.settings)) {
+    return false;
+  }
+
+  const settingsById = new Map(analysisInput.settings.map(setting => [String(setting.taskId), setting]));
+  const syncedOffsets = { ...variationOffsets };
+  for (const task of tasks) {
+    const setting = settingsById.get(String(task.id));
+    if (!setting || !Number.isFinite(setting.earlyBy) || setting.earlyBy < 0 ||
+        !Number.isFinite(setting.lateBy) || setting.lateBy < 0) {
+      return false;
+    }
+    syncedOffsets[task.id] = {
+      early: Math.min(setting.earlyBy, task.plannedDuration),
+      late: setting.lateBy
+    };
+  }
+  variationOffsets = syncedOffsets;
+  return true;
+}
+
+function setPlannedDuration(id, value) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  const duration = parseInt(value, 10);
+  if (isNaN(duration) || duration < 1) {
+    alert("Enter a valid duration (at least 1).");
+    render();
+    return;
+  }
+
+  task.plannedDuration = duration;
+  if (variationOffsets[id]) {
+    variationOffsets[id].early = Math.min(variationOffsets[id].early, duration);
+  }
+  render();
+}
+
+function setPredecessor(taskId, predecessorId, isSelected) {
+  const task = tasks.find(item => item.id === taskId);
+  if (!task || taskId === predecessorId) return;
+  const previousPredecessors = task.predecessors.slice();
+
+  if (isSelected) {
+    if (!task.predecessors.includes(predecessorId)) task.predecessors.push(predecessorId);
+  } else {
+    task.predecessors = task.predecessors.filter(id => id !== predecessorId);
+  }
+
+  if (!topologicalSort(tasks)) {
+    task.predecessors = previousPredecessors;
+    alert("Cannot update predecessors: this change would introduce a circular dependency.");
+  }
   render();
 }
 
@@ -349,9 +417,15 @@ function render() {
 
       const isEditing = node.id === editingTaskId;
 
-      const predNames = node.predecessors
-        .map(pid => { const t = tasks.find(x => x.id === pid); return t ? t.name : "?"; })
-        .join(", ") || "—";
+      const inlinePredecessorCheckboxes = tasks
+        .filter(task => task.id !== node.id)
+        .map(task => {
+          const isChecked = node.predecessors.includes(task.id) ? "checked" : "";
+          return `<label><input type="checkbox" ${isChecked}
+            onchange="setPredecessor(${node.id}, ${task.id}, this.checked)">
+            ${escapeHtml(task.name)}</label>`;
+        })
+        .join("") || '<span class="inline-preds-empty">No other tasks</span>';
 
       if (isEditing) {
         // Build predecessor checkbox list for editing (exclude self)
@@ -404,10 +478,11 @@ function render() {
             <button class="order-btn" onclick="moveTask(${index}, 1)" ${index === tasks.length - 1 ? "disabled" : ""} title="Move Down">▼</button>
           </td>
           <td>${node.name}</td>
-          <td>${node.plannedDuration}</td>
+          <td><input type="number" min="1" step="1" value="${node.plannedDuration}"
+              onchange="setPlannedDuration(${node.id}, this.value)" aria-label="Planned duration for ${escapeHtml(node.name)}"></td>
           <td><input type="number" min="0" value="${node.actualDuration !== null ? node.actualDuration : ""}" 
               onchange="setActual(${node.id}, this.value)" placeholder="—"></td>
-          <td>${predNames}</td>
+          <td><div class="inline-preds-container">${inlinePredecessorCheckboxes}</div></td>
           <td>${esVal}</td>
           <td>${efVal}</td>
           <td>${lsVal}</td>
@@ -473,7 +548,7 @@ function renderVariationSettings(hasCycle) {
   if (!tasks.length) {
     variationSettings.innerHTML = '<div class="empty-msg">Add tasks to configure variations.</div>';
     variationExportBtn.disabled = true;
-    variationOpenBtn.disabled = true;
+    variationOpenBtn.disabled = false;
     variationStatus.textContent = "";
     return;
   }
@@ -492,12 +567,15 @@ function renderVariationSettings(hasCycle) {
 
   const tooMany = tasks.length > MAX_VARIATION_TASKS;
   variationExportBtn.disabled = hasCycle || tooMany;
-  variationOpenBtn.disabled = hasCycle || tooMany;
+  variationOpenBtn.disabled = false;
   variationStatus.textContent = hasCycle
     ? "Resolve the circular dependency first."
     : tooMany
       ? `All-variation analysis supports up to ${MAX_VARIATION_TASKS} tasks.`
-      : `${3 ** tasks.length} variations will be generated.`;
+      : `${countDistinctVariations(tasks.map(task => ({
+          earlyBy: variationOffsets[task.id].early,
+          lateBy: variationOffsets[task.id].late
+        })))} variations will be generated.`;
 }
 
 variationSettings.addEventListener("change", event => {
@@ -512,6 +590,8 @@ variationSettings.addEventListener("change", event => {
   variationOffsets[taskId][input.dataset.kind] = value;
   input.value = value;
   persistSchedulerState();
+  persistVariationAnalysisInput();
+  renderVariationSettings(computeCPM().hasCycle);
 });
 
 function buildVariationInput(includeVariations) {
@@ -537,21 +617,31 @@ function buildVariationInput(includeVariations) {
   return output;
 }
 
+function persistVariationAnalysisInput() {
+  const cpm = computeCPM();
+  try {
+    if (tasks.length && !cpm.hasCycle && tasks.length <= MAX_VARIATION_TASKS) {
+      localStorage.setItem(VARIATION_ANALYSIS_STORAGE_KEY, JSON.stringify(buildVariationInput(false)));
+      return true;
+    }
+    localStorage.removeItem(VARIATION_ANALYSIS_STORAGE_KEY);
+  } catch (error) {
+    console.warn("Could not save the variation analysis input.", error);
+  }
+  return false;
+}
+
 function generateVariations(sourceTasks, settings) {
   const settingsById = Object.fromEntries(settings.map(item => [item.taskId, item]));
-  const total = 3 ** sourceTasks.length;
+  const total = countDistinctVariations(settings);
   const variations = new Array(total);
   for (let index = 0; index < total; index++) {
     let encoded = index;
     const outcomes = sourceTasks.map(task => {
-      const stateIndex = encoded % 3;
-      encoded = Math.floor(encoded / 3);
       const setting = settingsById[task.id];
-      const states = [
-        { status: "early", deviation: -setting.earlyBy },
-        { status: "onTime", deviation: 0 },
-        { status: "delayed", deviation: setting.lateBy }
-      ];
+      const states = getDistinctVariationStates(setting);
+      const stateIndex = encoded % states.length;
+      encoded = Math.floor(encoded / states.length);
       const state = states[stateIndex];
       return {
         taskId: task.id,
@@ -578,7 +668,7 @@ variationExportBtn.addEventListener("click", () => {
 
 variationOpenBtn.addEventListener("click", () => {
   persistSchedulerState();
-  localStorage.setItem("cpmVariationAnalysisInput", JSON.stringify(buildVariationInput(false)));
+  persistVariationAnalysisInput();
   window.location.href = "variations.html";
 });
 
@@ -708,6 +798,18 @@ exportBtn.addEventListener("click", () => {
       plannedDuration: cpm.projectDuration,
       actualDuration: actualDur
     },
+    variationSettings: cpm.nodes.map(node => {
+      const offsets = variationOffsets[node.id] || {
+        early: Math.min(1, node.plannedDuration),
+        late: 1
+      };
+      return {
+        taskId: node.id,
+        taskName: node.name,
+        earlyBy: Math.min(offsets.early, node.plannedDuration),
+        lateBy: offsets.late
+      };
+    }),
     tasks: cpm.nodes.map(node => ({
       id: node.id,
       name: node.name,
@@ -762,6 +864,9 @@ importFile.addEventListener("change", () => {
       : Array.isArray(parsed.tasks)
         ? parsed.tasks
         : null;
+    const importedVariationSettings = !Array.isArray(parsed) && Array.isArray(parsed.variationSettings)
+      ? parsed.variationSettings
+      : [];
 
     if (!rawTasks) {
       alert("Unrecognised format: expected a JSON file exported from this app.");
@@ -800,10 +905,11 @@ importFile.addEventListener("change", () => {
     const nameToId = {};
     rawTasks.forEach(t => {
       const newId = nextId++;
-      nameToId[t.name.trim()] = newId;
+      const taskName = t.name.trim();
+      nameToId[taskName] = newId;
       tasks.push({
         id: newId,
-        name: t.name.trim(),
+        name: taskName,
         plannedDuration: t.plannedDuration,
         actualDuration: (typeof t.actualDuration === "number" && t.actualDuration >= 0)
           ? t.actualDuration
@@ -811,6 +917,17 @@ importFile.addEventListener("change", () => {
         predecessors: [] // filled in second pass
       });
       ganttOrder.push(newId);
+
+      const importedSettings = importedVariationSettings.find(setting =>
+        setting && (setting.taskName === taskName || String(setting.taskId) === String(t.id))
+      );
+      const earlyBy = importedSettings && Number.isFinite(importedSettings.earlyBy) && importedSettings.earlyBy >= 0
+        ? Math.min(importedSettings.earlyBy, t.plannedDuration)
+        : Math.min(1, t.plannedDuration);
+      const lateBy = importedSettings && Number.isFinite(importedSettings.lateBy) && importedSettings.lateBy >= 0
+        ? importedSettings.lateBy
+        : 1;
+      variationOffsets[newId] = { early: earlyBy, late: lateBy };
     });
 
     // Second pass: resolve predecessors
@@ -1240,5 +1357,18 @@ function round(value) {
 }
 
 // ── Initial render ─────────────────────────────────────────────────
+window.addEventListener("storage", event => {
+  if (event.key !== VARIATION_ANALYSIS_STORAGE_KEY || !event.newValue) return;
+  try {
+    if (syncVariationOffsetsFromAnalysis(JSON.parse(event.newValue))) render();
+  } catch {
+    // Ignore invalid state written by another tab.
+  }
+});
+
+window.addEventListener("pageshow", event => {
+  if (event.persisted && syncVariationOffsetsFromAnalysis()) render();
+});
+
 restoreSchedulerState();
 render();

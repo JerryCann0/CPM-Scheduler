@@ -18,6 +18,34 @@
 // Shapley calculation), which is why task count is capped below.
 const SHAPLEY_MAX_EXACT_TASKS = 20;   // 2^20 ≈ 1M coalitions — practical ceiling
 const SHAPLEY_DEBUG_DETAIL_LIMIT = 10; // keep per-coalition console trace readable
+const VARIATION_ANALYSIS_STORAGE_KEY = "cpmVariationAnalysisInput";
+
+function getDistinctVariationStates(setting) {
+  const states = [];
+  if (setting.earlyBy > 0) states.push({ status: "early", deviation: -setting.earlyBy });
+  states.push({ status: "onTime", deviation: 0 });
+  if (setting.lateBy > 0) states.push({ status: "delayed", deviation: setting.lateBy });
+  return states;
+}
+
+function countDistinctVariations(settings) {
+  return settings.reduce((total, setting) => total * getDistinctVariationStates(setting).length, 1);
+}
+
+function variationTaskListsMatch(firstTasks, secondTasks) {
+  if (!Array.isArray(firstTasks) || !Array.isArray(secondTasks) || firstTasks.length !== secondTasks.length) {
+    return false;
+  }
+  const secondById = new Map(secondTasks.map(task => [String(task.id), task]));
+  return firstTasks.every(task => {
+    const other = secondById.get(String(task.id));
+    if (!other || task.name !== other.name || task.plannedDuration !== other.plannedDuration) return false;
+    const predecessors = Array.isArray(task.predecessors) ? task.predecessors.map(String).sort() : [];
+    const otherPredecessors = Array.isArray(other.predecessors) ? other.predecessors.map(String).sort() : [];
+    return predecessors.length === otherPredecessors.length &&
+      predecessors.every((id, index) => id === otherPredecessors[index]);
+  });
+}
 
 function popcount(x) {
   let c = 0;
