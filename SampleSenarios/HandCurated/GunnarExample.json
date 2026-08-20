@@ -1,0 +1,140 @@
+{
+  "projectSummary": {
+    "totalTasks": 6,
+    "plannedDuration": 20,
+    "actualDuration": 19
+  },
+  "variationSettings": [
+    {
+      "taskId": 10,
+      "taskName": "A",
+      "earlyBy": 1,
+      "lateBy": 1
+    },
+    {
+      "taskId": 11,
+      "taskName": "b",
+      "earlyBy": 1,
+      "lateBy": 1
+    },
+    {
+      "taskId": 12,
+      "taskName": "c",
+      "earlyBy": 1,
+      "lateBy": 1
+    },
+    {
+      "taskId": 13,
+      "taskName": "d",
+      "earlyBy": 1,
+      "lateBy": 1
+    },
+    {
+      "taskId": 14,
+      "taskName": "e",
+      "earlyBy": 1,
+      "lateBy": 1
+    },
+    {
+      "taskId": 15,
+      "taskName": "f",
+      "earlyBy": 1,
+      "lateBy": 1
+    }
+  ],
+  "tasks": [
+    {
+      "id": 10,
+      "name": "A",
+      "plannedDuration": 2,
+      "actualDuration": 1,
+      "predecessors": [],
+      "earlyStart": 0,
+      "earlyFinish": 2,
+      "lateStart": 0,
+      "lateFinish": 2,
+      "totalFloat": 0,
+      "isCritical": true
+    },
+    {
+      "id": 11,
+      "name": "b",
+      "plannedDuration": 4,
+      "actualDuration": 3,
+      "predecessors": [
+        {
+          "id": 10,
+          "name": "A"
+        }
+      ],
+      "earlyStart": 2,
+      "earlyFinish": 6,
+      "lateStart": 2,
+      "lateFinish": 6,
+      "totalFloat": 0,
+      "isCritical": true
+    },
+    {
+      "id": 12,
+      "name": "c",
+      "plannedDuration": 6,
+      "actualDuration": 6,
+      "predecessors": [
+        {
+          "id": 11,
+          "name": "b"
+        }
+      ],
+      "earlyStart": 6,
+      "earlyFinish": 12,
+      "lateStart": 6,
+      "lateFinish": 12,
+      "totalFloat": 0,
+      "isCritical": true
+    },
+    {
+      "id": 13,
+      "name": "d",
+      "plannedDuration": 5,
+      "actualDuration": 7,
+      "predecessors": [],
+      "earlyStart": 0,
+      "earlyFinish": 5,
+      "lateStart": 15,
+      "lateFinish": 20,
+      "totalFloat": 15,
+      "isCritical": false
+    },
+    {
+      "id": 14,
+      "name": "e",
+      "plannedDuration": 2,
+      "actualDuration": 5,
+      "predecessors": [],
+      "earlyStart": 0,
+      "earlyFinish": 2,
+      "lateStart": 18,
+      "lateFinish": 20,
+      "totalFloat": 18,
+      "isCritical": false
+    },
+    {
+      "id": 15,
+      "name": "f",
+      "plannedDuration": 8,
+      "actualDuration": 9,
+      "predecessors": [
+        {
+          "id": 12,
+          "name": "c"
+        }
+      ],
+      "earlyStart": 12,
+      "earlyFinish": 20,
+      "lateStart": 12,
+      "lateFinish": 20,
+      "totalFloat": 0,
+      "isCritical": true
+    }
+  ]
+}

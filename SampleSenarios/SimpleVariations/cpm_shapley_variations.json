@@ -1,0 +1,1628 @@
+{
+  "format": "cpm-shapley-variations",
+  "version": 1,
+  "generatedAt": "2026-08-13T19:07:38.007Z",
+  "project": {
+    "plannedDuration": 8,
+    "tasks": [
+      {
+        "id": 1,
+        "name": "a",
+        "plannedDuration": 2,
+        "predecessors": []
+      },
+      {
+        "id": 2,
+        "name": "b",
+        "plannedDuration": 6,
+        "predecessors": [
+          1
+        ]
+      },
+      {
+        "id": 3,
+        "name": "c",
+        "plannedDuration": 3,
+        "predecessors": []
+      },
+      {
+        "id": 5,
+        "name": "d",
+        "plannedDuration": 3,
+        "predecessors": [
+          3
+        ]
+      }
+    ]
+  },
+  "settings": [
+    {
+      "taskId": 1,
+      "earlyBy": 1,
+      "lateBy": 4
+    },
+    {
+      "taskId": 2,
+      "earlyBy": 4,
+      "lateBy": 0
+    },
+    {
+      "taskId": 3,
+      "earlyBy": 2,
+      "lateBy": 1
+    },
+    {
+      "taskId": 5,
+      "earlyBy": 2,
+      "lateBy": 1
+    }
+  ],
+  "variations": [
+    {
+      "id": 1,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "early",
+          "deviation": -2,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 3
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "early",
+          "deviation": -4,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "early",
+          "deviation": -1,
+          "actualDuration": 1
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 2
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "outcomes": [
+        {
+          "taskId": 1,
+          "status": "delayed",
+          "deviation": 4,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 2,
+          "status": "onTime",
+          "deviation": 0,
+          "actualDuration": 6
+        },
+        {
+          "taskId": 3,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        },
+        {
+          "taskId": 5,
+          "status": "delayed",
+          "deviation": 1,
+          "actualDuration": 4
+        }
+      ]
+    }
+  ]
+}

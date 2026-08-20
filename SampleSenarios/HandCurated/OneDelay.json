@@ -1,0 +1,68 @@
+{
+  "projectSummary": {
+    "totalTasks": 3,
+    "plannedDuration": 3,
+    "actualDuration": 4
+  },
+  "variationSettings": [
+    {
+      "taskId": 23,
+      "taskName": "A",
+      "earlyBy": 1,
+      "lateBy": 1
+    },
+    {
+      "taskId": 24,
+      "taskName": "B",
+      "earlyBy": 1,
+      "lateBy": 1
+    },
+    {
+      "taskId": 25,
+      "taskName": "C",
+      "earlyBy": 1,
+      "lateBy": 1
+    }
+  ],
+  "tasks": [
+    {
+      "id": 23,
+      "name": "A",
+      "plannedDuration": 3,
+      "actualDuration": 4,
+      "predecessors": [],
+      "earlyStart": 0,
+      "earlyFinish": 3,
+      "lateStart": 0,
+      "lateFinish": 3,
+      "totalFloat": 0,
+      "isCritical": true
+    },
+    {
+      "id": 24,
+      "name": "B",
+      "plannedDuration": 2,
+      "actualDuration": 2,
+      "predecessors": [],
+      "earlyStart": 0,
+      "earlyFinish": 2,
+      "lateStart": 1,
+      "lateFinish": 3,
+      "totalFloat": 1,
+      "isCritical": false
+    },
+    {
+      "id": 25,
+      "name": "C",
+      "plannedDuration": 2,
+      "actualDuration": 2,
+      "predecessors": [],
+      "earlyStart": 0,
+      "earlyFinish": 2,
+      "lateStart": 1,
+      "lateFinish": 3,
+      "totalFloat": 1,
+      "isCritical": false
+    }
+  ]
+}
