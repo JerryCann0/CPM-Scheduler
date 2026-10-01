@@ -1046,6 +1046,7 @@ function renderGantt(cpm) {
   if (maxTime === 0) {
     maxTime = Math.max(projectDur, 1);
   }
+  maxTime += 1; // Include one additional time label and matching grid column.
 
   // Wrapper for rows + SVG overlay
   const wrapper = document.createElement("div");

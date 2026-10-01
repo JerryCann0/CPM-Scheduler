@@ -58,6 +58,7 @@
     <label style="cursor: pointer;"><input type="checkbox" id="toggle-planned" checked> Show Planned</label>
     <label style="cursor: pointer;"><input type="checkbox" id="toggle-actual" checked> Show Actual</label>
     <label style="cursor: pointer;"><input type="checkbox" id="toggle-relations" checked> Show Relationships</label>
+    <button type="button" data-gantt-export="gantt-container">Export PNG</button>
   </div>
   <div id="gantt-container" class="gantt-container">
     <div class="empty-msg" id="gantt-empty">No tasks to display.</div>
@@ -109,5 +110,6 @@
 
   <script src="analysis.js"></script>
   <script src="app.js"></script>
+  <script src="gantt-export.js"></script>
 </body>
 </html>

@@ -219,7 +219,7 @@ function renderScheduleGantt(container, plannedSchedule, actualSchedule, markerP
   const BAR_MID_ACTUAL = 15.5;
   const maxTime = Math.max(Math.ceil(
     Math.max(plannedSchedule.projectDuration, actualSchedule?.projectDuration || 0)
-  ), 1);
+  ), 1) + 1; // Include one additional time label and matching grid column.
   const wrapper = document.createElement("div");
   wrapper.className = "planned-gantt gantt-chart";
   wrapper.style.position = "relative";
@@ -427,7 +427,8 @@ function renderVariation(index) {
     <div class="analysis-summary"><span>Project-end change: <strong>${signed(methods.projectEnd.totalDelay)}</strong></span><span>Most positive deviation: <strong>${signed(methods.deviation.totalDelay)}</strong></span></div>
     <table class="analysis-table"><thead><tr><th>Task</th><th>Outcome</th><th>Planned Duration</th><th>Deviation</th><th>Actual Duration</th><th>Project-End Shapley</th><th>Deviation Shapley</th></tr></thead><tbody>${rows}</tbody></table>
     <h4 class="variation-gantt-title">Planned vs. Actual Schedule</h4>
-    <div class="gantt-container variation-gantt-container" data-variation-index="${index}"></div>
+    <button type="button" data-gantt-export="variation-chart-${index}">Export PNG</button>
+    <div id="variation-chart-${index}" class="gantt-container variation-gantt-container" data-variation-index="${index}"></div>
     <div class="gantt-legend variation-gantt-legend">
       <span class="legend-item"><span class="legend-swatch legend-planned"></span> Planned</span>
       <span class="legend-item"><span class="legend-swatch legend-actual"></span> Actual</span>

@@ -21,6 +21,7 @@
   <div id="viewer-status" class="analysis-status">No variation data loaded.</div>
   <section id="planned-schedule-section" hidden>
     <h2>Planned Schedule</h2>
+    <button type="button" data-gantt-export="planned-gantt-container">Export PNG</button>
     <div id="planned-gantt-container" class="gantt-container"></div>
     <div class="gantt-legend">
       <span class="legend-item"><span class="legend-swatch legend-planned"></span> Planned</span>
@@ -37,5 +38,6 @@
   <div id="variation-results"></div>
   <script src="analysis.js"></script>
   <script src="variations.js"></script>
+  <script src="gantt-export.js"></script>
 </body>
 </html>
